@@ -8,7 +8,7 @@
       "category": "partial",
       "artifact": "design.md",
       "path": "src/app.js",
-      "description": "缺少已批准的 request_completed 结构化事件及对应可执行验证。",
+      "description": "\u7F3A\u5C11\u5DF2\u6279\u51C6\u7684 request_completed \u7ED3\u6784\u5316\u4E8B\u4EF6\u53CA\u5BF9\u5E94\u53EF\u6267\u884C\u9A8C\u8BC1\u3002",
       "route": "coding-repair"
     }
   ]
