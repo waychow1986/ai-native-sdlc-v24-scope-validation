@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const publicRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
 const contentSecurityPolicy =
   "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'";
+const requestStartedAt = Symbol("requestStartedAt");
 
 const emptyInputSchema = {
   type: "object",
@@ -43,8 +44,12 @@ const problemResponseSchema = {
   },
 };
 
-function writeEvent(event) {
+function writeFixedErrorEvent(event) {
   process.stderr.write(`${JSON.stringify({ event })}\n`);
+}
+
+function writeRequestEvent(event) {
+  process.stdout.write(`${JSON.stringify(event)}\n`);
 }
 
 function sendProblem(reply, status, title, code) {
@@ -66,17 +71,37 @@ function methodNotAllowed(_request, reply) {
   });
 }
 
-export function buildApp({ adapter, candidateIdentity = null }) {
+export function buildApp({
+  adapter,
+  candidateIdentity = null,
+  writeEvent = writeRequestEvent,
+}) {
   if (!adapter || typeof adapter.getStatus !== "function") {
     throw new TypeError("A status adapter is required");
   }
 
   const app = Fastify({ logger: false });
 
+  app.addHook("onRequest", async (request) => {
+    request[requestStartedAt] = process.hrtime.bigint();
+  });
+
   app.addHook("onSend", async (_request, reply) => {
     reply.header("X-Content-Type-Options", "nosniff");
     reply.header("Referrer-Policy", "no-referrer");
     reply.header("Content-Security-Policy", contentSecurityPolicy);
+  });
+
+  app.addHook("onResponse", async (request, reply) => {
+    const elapsed = process.hrtime.bigint() - request[requestStartedAt];
+    writeEvent({
+      event: "request_completed",
+      routeTemplate: request.routeOptions.url ?? null,
+      method: request.method,
+      statusCode: reply.statusCode,
+      durationMs: Number(elapsed) / 1_000_000,
+      requestId: String(request.id),
+    });
   });
 
   app.register(fastifyStatic, {
@@ -90,7 +115,7 @@ export function buildApp({ adapter, candidateIdentity = null }) {
       if (error.validation || error.statusCode === 400) {
         return sendProblem(reply, 400, "Invalid request", "INVALID_REQUEST");
       }
-      writeEvent("uncaught_error");
+      writeFixedErrorEvent("uncaught_error");
       return sendProblem(
         reply,
         503,
@@ -133,7 +158,7 @@ export function buildApp({ adapter, candidateIdentity = null }) {
       }
 
       if (result.kind === "failure") {
-        writeEvent("status_unavailable");
+        writeFixedErrorEvent("status_unavailable");
         return sendProblem(
           reply,
           503,

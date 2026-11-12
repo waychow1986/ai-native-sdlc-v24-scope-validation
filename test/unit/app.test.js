@@ -216,3 +216,64 @@ test("unsupported methods return 405 with the allowed method", async () => {
     }
   });
 });
+
+test("each request emits one sanitized request_completed event", async () => {
+  const events = [];
+  const app = buildApp({
+    adapter: { getStatus: () => ({ kind: "failure" }) },
+    writeEvent(event) {
+      events.push(event);
+    },
+  });
+
+  try {
+    await app.ready();
+    const responses = [
+      await app.inject({ method: "GET", url: "/healthz" }),
+      await app.inject({ method: "GET", url: "/api/status" }),
+      await app.inject({
+        method: "GET",
+        url: "/missing?secret=must-not-be-logged",
+        headers: { "user-agent": "private-agent" },
+      }),
+    ];
+
+    assert.deepEqual(
+      responses.map(({ statusCode }) => statusCode),
+      [200, 503, 404],
+    );
+    assert.equal(events.length, 3);
+    assert.deepEqual(
+      events.map(({ routeTemplate, method, statusCode }) => ({
+        routeTemplate,
+        method,
+        statusCode,
+      })),
+      [
+        { routeTemplate: "/healthz", method: "GET", statusCode: 200 },
+        { routeTemplate: "/api/status", method: "GET", statusCode: 503 },
+        { routeTemplate: null, method: "GET", statusCode: 404 },
+      ],
+    );
+
+    for (const event of events) {
+      assert.deepEqual(Object.keys(event).sort(), [
+        "durationMs",
+        "event",
+        "method",
+        "requestId",
+        "routeTemplate",
+        "statusCode",
+      ]);
+      assert.equal(event.event, "request_completed");
+      assert.equal(typeof event.requestId, "string");
+      assert.ok(event.requestId.length > 0);
+      assert.equal(typeof event.durationMs, "number");
+      assert.ok(Number.isFinite(event.durationMs));
+      assert.ok(event.durationMs >= 0);
+      assert.doesNotMatch(JSON.stringify(event), /secret|private-agent|missing/i);
+    }
+  } finally {
+    await app.close();
+  }
+});
