@@ -1,0 +1,46 @@
+{
+  "passed": false,
+  "testedCommitSha": "69921436924c03b94d657bc848a958a7eda42de8",
+  "environmentUrl": "http://172.175.215.138",
+  "summary": "Independent QA 未通过；请查看 defects、testGaps 和 scenarios。",
+  "qaPlanCommitSha": "6ed0defcad1b7c7d889fdfd83088592358f39f33",
+  "qaPlanHash": "sha256:f702dbc57ffce403a13fe8f5c2e74a5667bfda862a2dd83f2a6617bfd8036eba",
+  "defects": [],
+  "testGaps": [
+    "当前远程 target 仅提供成功结果条件，无法建立 AC-002、AC-003 和 AC-004 所需的失败及重试结果前置条件。"
+  ],
+  "evidence": [
+    "远程 health 与 Candidate identity 已匹配平台提供的 Delivery ID 和 Candidate SHA。",
+    "AC-001: 真实 Chromium 首次加载：标题“流程状态”，状态“ok”，/api/status 请求数 1。",
+    "AC-002: 当前远程 target 仅提供成功结果条件，未建立本场景所需的失败前置条件。",
+    "AC-003: 当前远程 target 仅提供成功结果条件，未建立本场景所需的失败前置条件。",
+    "AC-004: 当前远程 target 仅提供成功结果条件，未建立本场景所需的失败前置条件。"
+  ],
+  "bugfixResults": [],
+  "scenarios": [
+    {
+      "id": "AC-001",
+      "passed": true,
+      "externalServices": [],
+      "evidence": "真实 Chromium 首次加载：标题“流程状态”，状态“ok”，/api/status 请求数 1。"
+    },
+    {
+      "id": "AC-002",
+      "passed": false,
+      "externalServices": [],
+      "evidence": "当前远程 target 仅提供成功结果条件，未建立本场景所需的失败前置条件。"
+    },
+    {
+      "id": "AC-003",
+      "passed": false,
+      "externalServices": [],
+      "evidence": "当前远程 target 仅提供成功结果条件，未建立本场景所需的失败前置条件。"
+    },
+    {
+      "id": "AC-004",
+      "passed": false,
+      "externalServices": [],
+      "evidence": "当前远程 target 仅提供成功结果条件，未建立本场景所需的失败前置条件。"
+    }
+  ]
+}
