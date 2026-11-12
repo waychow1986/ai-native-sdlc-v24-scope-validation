@@ -30,8 +30,14 @@ export function createStatusAdapter({ mode = "success" } = {}) {
     throw new Error("Invalid STATUS_MODE configuration");
   }
 
+  let evaluations = 0;
+
   return {
     getStatus() {
+      evaluations += 1;
+      if (mode === "failure" || (mode === "fail-once" && evaluations === 1)) {
+        return { kind: "failure" };
+      }
       return { kind: "success" };
     },
   };
