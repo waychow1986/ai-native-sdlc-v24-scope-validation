@@ -1,0 +1,9 @@
+.git
+.github
+.ai-delivery
+node_modules
+dist
+test
+playwright-report
+test-results
+*.log

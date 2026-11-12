@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>流程状态</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <h1>流程状态</h1>
+      <p id="status-result" role="status" aria-live="polite">正在获取状态…</p>
+      <section id="failure-result" hidden>
+        <p id="failure-message" role="status" aria-live="polite">状态获取失败，请重试。</p>
+        <button id="retry-status" type="button">重新尝试</button>
+      </section>
+    </main>
+  </body>
+</html>
