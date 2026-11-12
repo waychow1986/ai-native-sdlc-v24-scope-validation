@@ -12,7 +12,7 @@
     "start": "node src/server.js",
     "lint": "eslint .",
     "build": "node scripts/build.mjs",
-    "test:unit": "node --test test/unit",
+    "test:unit": "node --test test/unit/*.test.js",
     "test:functional": "playwright test"
   },
   "repository": {
