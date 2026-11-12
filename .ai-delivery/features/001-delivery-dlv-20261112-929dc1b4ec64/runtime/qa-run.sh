@@ -92,11 +92,23 @@ while ((SECONDS < deadline)); do
     break
   fi
 
-  if ! curl --fail --silent --show-error \
+  if curl --fail --silent --show-error \
     --connect-timeout 5 --max-time "$request_timeout" \
     "$base_url$health_path" >"$work_dir/health.json" 2>"$work_dir/curl.err"; then
-    last_diagnostic="Candidate health 请求失败（curl exit $?）。"
-  elif ! jq -e '. == {status: "ok"}' "$work_dir/health.json" >/dev/null 2>&1; then
+    :
+  else
+    curl_exit=$?
+    last_diagnostic="Candidate health 请求失败（curl exit $curl_exit）。"
+    remaining=$((deadline - SECONDS))
+    if ((remaining > 5)); then
+      sleep 5
+    elif ((remaining > 0)); then
+      sleep "$remaining"
+    fi
+    continue
+  fi
+
+  if ! jq -e '. == {status: "ok"}' "$work_dir/health.json" >/dev/null 2>&1; then
     last_diagnostic="Candidate health 响应不符合预期 JSON。"
   else
     remaining=$((deadline - SECONDS))
@@ -107,17 +119,22 @@ while ((SECONDS < deadline)); do
     if ((request_timeout < 1)); then
       break
     fi
-    if ! curl --fail --silent --show-error \
+    identity_received=false
+    if curl --fail --silent --show-error \
       --connect-timeout 5 --max-time "$request_timeout" \
       "$base_url/candidate-identity" >"$work_dir/identity.json" 2>"$work_dir/curl.err"; then
-      last_diagnostic="Candidate identity 请求失败（curl exit $?）。"
-    elif ! jq -e \
+      identity_received=true
+    else
+      curl_exit=$?
+      last_diagnostic="Candidate identity 请求失败（curl exit $curl_exit）。"
+    fi
+    if [[ "$identity_received" == true ]] && ! jq -e \
       --arg deliveryId "$QA_DELIVERY_ID" \
       --arg candidateSha "$QA_CANDIDATE_SHA" \
       '. == {deliveryId: $deliveryId, candidateSha: $candidateSha}' \
       "$work_dir/identity.json" >/dev/null 2>&1; then
       last_diagnostic="Candidate identity 与平台提供的 Delivery ID 或 Candidate SHA 不匹配。"
-    else
+    elif [[ "$identity_received" == true ]]; then
       ready=true
       break
     fi
@@ -238,20 +255,26 @@ try {
       defects.push("AC-002 的标题、明确失败提示、可用重新尝试操作或单次首次状态查看不符合预期。");
     }
 
-    await page.getByRole("button", { name: "重新尝试" }).click();
-    await page.waitForFunction(() => {
-      const result = document.querySelector("#status-result");
-      const failure = document.querySelector("#failure-result");
-      const retry = document.querySelector("#retry-status");
-      return (
-        result?.dataset.state === "success" ||
-        (failure && !failure.hidden && retry instanceof HTMLButtonElement && !retry.disabled)
-      );
-    }, undefined, { timeout: 30_000 });
-    snapshot = await visibleSnapshot(page);
-    const retryRequestExact = statusRequests.length === 2;
+    if (!snapshot.retryVisible || !snapshot.retryEnabled) {
+      byId["AC-001"].evidence = "当前远程 target 未提供成功结果条件。";
+      byId["AC-003"].evidence = "首次失败后没有可用的重新尝试操作，无法执行恢复操作。";
+      byId["AC-004"].evidence = "首次失败后没有可用的重新尝试操作，无法执行连续失败操作。";
+      testGaps.push("当前远程 target 未提供成功结果条件，无法执行 AC-001。");
+    } else {
+      await page.getByRole("button", { name: "重新尝试" }).click();
+      await page.waitForFunction(() => {
+        const result = document.querySelector("#status-result");
+        const failure = document.querySelector("#failure-result");
+        const retry = document.querySelector("#retry-status");
+        return (
+          result?.dataset.state === "success" ||
+          (failure && !failure.hidden && retry instanceof HTMLButtonElement && !retry.disabled)
+        );
+      }, undefined, { timeout: 30_000 });
+      snapshot = await visibleSnapshot(page);
+      const retryRequestExact = statusRequests.length === 2;
 
-    if (snapshot.resultVisible && snapshot.resultText === "ok") {
+      if (snapshot.resultVisible && snapshot.resultText === "ok") {
       byId["AC-003"].passed = retryRequestExact;
       byId["AC-003"].evidence =
         `首次失败后点击一次重试，当前结果更新为“ok”，累计 /api/status 请求数 ${statusRequests.length}。`;
@@ -274,7 +297,7 @@ try {
       byId["AC-001"].evidence =
         `重试成功后重新打开首页：标题“${successSnapshot.title}”，状态“${successSnapshot.resultText}”，` +
         `本次 /api/status 请求数 ${reloadRequests}。`;
-    } else if (snapshot.failureVisible) {
+      } else if (snapshot.failureVisible) {
       byId["AC-004"].passed =
         snapshot.failureText.includes("失败") &&
         snapshot.retryVisible &&
@@ -289,11 +312,12 @@ try {
       byId["AC-001"].evidence = "当前远程 target 未提供成功结果条件。";
       byId["AC-003"].evidence = "当前远程 target 未提供失败后重试成功结果条件。";
       testGaps.push("当前远程 target 仅提供持续失败结果条件，无法执行 AC-001 和 AC-003。");
-    } else {
-      defects.push("重新尝试后页面既未呈现成功结果，也未呈现明确失败结果。");
-      byId["AC-003"].evidence = "重新尝试后没有可判定的成功或失败结果。";
-      byId["AC-004"].evidence = "重新尝试后没有可判定的成功或失败结果。";
-      byId["AC-001"].evidence = "当前远程 target 未建立可验证的成功结果条件。";
+      } else {
+        defects.push("重新尝试后页面既未呈现成功结果，也未呈现明确失败结果。");
+        byId["AC-003"].evidence = "重新尝试后没有可判定的成功或失败结果。";
+        byId["AC-004"].evidence = "重新尝试后没有可判定的成功或失败结果。";
+        byId["AC-001"].evidence = "当前远程 target 未建立可验证的成功结果条件。";
+      }
     }
   } else {
     defects.push("首页状态查看结束后既未显示固定成功文字“ok”，也未显示明确失败提示和重试操作。");
