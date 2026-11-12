@@ -21,6 +21,31 @@ test("separate default adapter instances begin in the same initial state", () =>
   assert.deepEqual(second.getStatus(), { kind: "success" });
 });
 
+test("failure mode returns one strict failure result for every evaluation", () => {
+  const adapter = createStatusAdapter({ mode: "failure" });
+
+  assert.deepEqual(adapter.getStatus(), { kind: "failure" });
+  assert.deepEqual(adapter.getStatus(), { kind: "failure" });
+  assert.deepEqual(Object.keys(adapter.getStatus()), ["kind"]);
+});
+
+test("fail-once mode fails its first evaluation and then succeeds", () => {
+  const adapter = createStatusAdapter({ mode: "fail-once" });
+
+  assert.deepEqual(adapter.getStatus(), { kind: "failure" });
+  assert.deepEqual(adapter.getStatus(), { kind: "success" });
+  assert.deepEqual(adapter.getStatus(), { kind: "success" });
+});
+
+test("each fail-once adapter instance starts with a fresh counter", () => {
+  const first = createStatusAdapter({ mode: "fail-once" });
+  const second = createStatusAdapter({ mode: "fail-once" });
+
+  assert.deepEqual(first.getStatus(), { kind: "failure" });
+  assert.deepEqual(first.getStatus(), { kind: "success" });
+  assert.deepEqual(second.getStatus(), { kind: "failure" });
+});
+
 test("configuration accepts the documented defaults and explicit values", () => {
   assert.deepEqual(parseConfiguration({}), {
     host: "0.0.0.0",

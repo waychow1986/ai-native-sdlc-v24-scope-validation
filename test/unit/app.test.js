@@ -26,6 +26,22 @@ function assertSecurityHeaders(response) {
   }
 }
 
+function assertProblem(response, status, title, code) {
+  assert.equal(response.statusCode, status);
+  assert.match(
+    response.headers["content-type"],
+    /^application\/problem\+json; charset=utf-8/,
+  );
+  assert.deepEqual(response.json(), {
+    type: "about:blank",
+    title,
+    status,
+    code,
+  });
+  assert.doesNotMatch(response.body, /stack|configuration|\/home\//i);
+  assertSecurityHeaders(response);
+}
+
 test("GET / serves the semantic page and external assets", async () => {
   await withApp({ getStatus: () => ({ kind: "success" }) }, async (app) => {
     const response = await app.inject({ method: "GET", url: "/" });
@@ -62,6 +78,77 @@ test("GET /api/status returns the exact successful contract once", async () => {
       assertSecurityHeaders(response);
     },
   );
+});
+
+test("GET /api/status maps one failure evaluation to the fixed 503 contract", async () => {
+  let calls = 0;
+  await withApp(
+    {
+      getStatus() {
+        calls += 1;
+        return { kind: "failure" };
+      },
+    },
+    async (app) => {
+      const response = await app.inject({ method: "GET", url: "/api/status" });
+
+      assertProblem(
+        response,
+        503,
+        "Status unavailable",
+        "STATUS_UNAVAILABLE",
+      );
+      assert.equal(response.headers["cache-control"], "no-store");
+      assert.equal(calls, 1);
+    },
+  );
+});
+
+test("GET /api/status rejects query and body input with the fixed 400 contract", async () => {
+  let calls = 0;
+  await withApp(
+    {
+      getStatus() {
+        calls += 1;
+        return { kind: "success" };
+      },
+    },
+    async (app) => {
+      for (const options of [
+        { method: "GET", url: "/api/status?mode=failure" },
+        {
+          method: "GET",
+          url: "/api/status",
+          headers: { "content-type": "application/json" },
+          payload: { mode: "failure" },
+        },
+      ]) {
+        const response = await app.inject(options);
+        assertProblem(response, 400, "Invalid request", "INVALID_REQUEST");
+      }
+      assert.equal(calls, 0);
+    },
+  );
+});
+
+test("GET /api/status maps adapter errors and invalid results without disclosure", async () => {
+  for (const getStatus of [
+    () => {
+      throw new Error("sensitive configuration value");
+    },
+    () => ({ kind: "unexpected", configuration: "sensitive" }),
+  ]) {
+    await withApp({ getStatus }, async (app) => {
+      const response = await app.inject({ method: "GET", url: "/api/status" });
+      assertProblem(
+        response,
+        503,
+        "Status unavailable",
+        "STATUS_UNAVAILABLE",
+      );
+      assert.doesNotMatch(response.body, /sensitive|unexpected/i);
+    });
+  }
 });
 
 test("GET /healthz reports process health without calling the adapter", async () => {
