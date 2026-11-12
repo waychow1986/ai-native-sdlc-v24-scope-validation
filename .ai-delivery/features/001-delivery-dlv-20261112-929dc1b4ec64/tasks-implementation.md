@@ -48,17 +48,17 @@
 
 ### 测试
 
-- [ ] T015 [P] [US2] 在实现前扩展聚焦 unit tests，覆盖 `failure` 持续失败、`fail-once` 首次失败后成功、每请求只求值一次及新实例计数归零；完成证据为新增断言在缺少模式实现时按预期失败（`test/unit/status-adapter.test.js`；来源：US-002、FR-004、FR-005、AC-003、AC-004、TD-004、验证 adapter 语义；依赖：T006、T009、T014）
-- [ ] T016 [P] [US2] 在实现前扩展 contract/component tests，覆盖固定 503 problem contract、非法 query/body 的 400、内部错误统一映射、failure schema、无 stack/配置泄露以及 adapter 每请求调用一次；完成证据为新增断言在缺少失败映射时按预期失败（`test/unit/app.test.js`；来源：US-002、FR-004、FR-005、GET `/api/status` Contract、Contract test 义务；依赖：T007、T010、T014）
-- [ ] T017 [US2] 在实现前扩展真实浏览器 integration、functional 和 end-to-end 场景，分别以干净进程覆盖 `IQA-002`、`IQA-003`、`IQA-004`，验证失败不显示“ok”、重试成功替换旧结果、连续失败仍可重试且每次点击仅产生一次请求；完成证据为新增场景在缺少恢复行为时按预期失败（`test/functional/status-page.spec.js`；来源：US-002、FR-004、FR-005、IQA-002—IQA-004、AC-002—AC-004、TD-005、TD-006；依赖：T008、T011—T014）
+- [x] T015 [P] [US2] 在实现前扩展聚焦 unit tests，覆盖 `failure` 持续失败、`fail-once` 首次失败后成功、每请求只求值一次及新实例计数归零；完成证据为新增断言在缺少模式实现时按预期失败（`test/unit/status-adapter.test.js`；来源：US-002、FR-004、FR-005、AC-003、AC-004、TD-004、验证 adapter 语义；依赖：T006、T009、T014）
+- [x] T016 [P] [US2] 在实现前扩展 contract/component tests，覆盖固定 503 problem contract、非法 query/body 的 400、内部错误统一映射、failure schema、无 stack/配置泄露以及 adapter 每请求调用一次；完成证据为新增断言在缺少失败映射时按预期失败（`test/unit/app.test.js`；来源：US-002、FR-004、FR-005、GET `/api/status` Contract、Contract test 义务；依赖：T007、T010、T014）
+- [x] T017 [US2] 在实现前扩展真实浏览器 integration、functional 和 end-to-end 场景，分别以干净进程覆盖 `IQA-002`、`IQA-003`、`IQA-004`，验证失败不显示“ok”、重试成功替换旧结果、连续失败仍可重试且每次点击仅产生一次请求；完成证据为新增场景在缺少恢复行为时按预期失败（`test/functional/status-page.spec.js`；来源：US-002、FR-004、FR-005、IQA-002—IQA-004、AC-002—AC-004、TD-005、TD-006；依赖：T008、T011—T014）
 
 ### 实现
 
-- [ ] T018 [US2] 实现 `failure` 与 `fail-once` adapter、同步首次判定及独立实例计数，使 T015 通过且不引入持久状态（`src/status-adapter.js`；来源：FR-004、FR-005、TD-004、验证 adapter 语义；依赖：T015）
-- [ ] T019 [US2] 实现状态不可用 503、非法输入 400 和未处理错误的固定 public problem contract，只记录批准的固定类别，使 T016 通过（`src/app.js`；来源：FR-004、FR-005、TD-003、GET `/api/status` Contract、安全与日志约束；依赖：T016、T018）
-- [ ] T020 [P] [US2] 为失败状态加入默认隐藏的明确失败结果容器和“重新尝试”按钮，保持语义化结构及 CSP 兼容（`public/index.html`；来源：FR-004、FR-005、GET `/` Contract；依赖：T017）
-- [ ] T021 [US2] 实现 failure 映射、重试按钮、单活跃请求、递增 attempt token、旧请求取消/忽略及当前结果原子替换；禁止自动重试并确保再次失败后按钮恢复，使 T017 通过（`public/app.js`；来源：FR-004、FR-005、AC-002—AC-004、TD-005、数据流与并发决策；依赖：T017、T019、T020）
-- [ ] T022 [P] [US2] 添加最小 failure 与重试操作样式，并保持第三方资源和复杂视觉设计在范围外（`public/styles.css`；来源：FR-004、INT-006、TD-002；依赖：T017、T020）
+- [x] T018 [US2] 实现 `failure` 与 `fail-once` adapter、同步首次判定及独立实例计数，使 T015 通过且不引入持久状态（`src/status-adapter.js`；来源：FR-004、FR-005、TD-004、验证 adapter 语义；依赖：T015）
+- [x] T019 [US2] 实现状态不可用 503、非法输入 400 和未处理错误的固定 public problem contract，只记录批准的固定类别，使 T016 通过（`src/app.js`；来源：FR-004、FR-005、TD-003、GET `/api/status` Contract、安全与日志约束；依赖：T016、T018）
+- [x] T020 [P] [US2] 为失败状态加入默认隐藏的明确失败结果容器和“重新尝试”按钮，保持语义化结构及 CSP 兼容（`public/index.html`；来源：FR-004、FR-005、GET `/` Contract；依赖：T017）
+- [x] T021 [US2] 实现 failure 映射、重试按钮、单活跃请求、递增 attempt token、旧请求取消/忽略及当前结果原子替换；禁止自动重试并确保再次失败后按钮恢复，使 T017 通过（`public/app.js`；来源：FR-004、FR-005、AC-002—AC-004、TD-005、数据流与并发决策；依赖：T017、T019、T020）
+- [x] T022 [P] [US2] 添加最小 failure 与重试操作样式，并保持第三方资源和复杂视觉设计在范围外（`public/styles.css`；来源：FR-004、INT-006、TD-002；依赖：T017、T020）
 
 ## Phase 5：Polish
 

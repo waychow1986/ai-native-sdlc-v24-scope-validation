@@ -140,3 +140,73 @@
 ### 实施结论
 
 完成：`coding-attempt-01-batch-02-operation-011` 已按测试先行顺序完成 `T005`—`T014` 共 10 项任务；Node.js 24 环境下静态分析、确定性 build、13 项 unit/component/contract test、1 项本地真实 Chromium integration/functional/end-to-end 场景、语法检查及 dependency audit 全部通过。完整 Delivery Coding 尚未完成；下一批从 Phase 4 `T015` 继续。
+
+## Coding Session coding-attempt-01-batch-03-operation-012
+
+### 实施范围
+
+本 Session 按依赖和测试先行顺序完成 Phase 4 `T015`—`T022`，共 8 个未完成任务。先扩展 adapter unit、Fastify contract/component 及真实 Chromium 测试并确认缺少失败恢复实现时按预期失败，再实现 `failure`、`fail-once`、固定 400/503 problem contract、失败提示、重新尝试、单活跃请求和 attempt token。未提前实施 Phase 5 的 container 或 runtime 制品。
+
+### 变更文件
+
+| 路径 | 变更 | 来源任务 |
+|---|---|---|
+| `test/unit/status-adapter.test.js` | 覆盖持续失败、首次失败后成功及独立实例计数归零 | T015 |
+| `test/unit/app.test.js` | 覆盖固定 400/503 problem contract、每请求一次求值及内部错误安全映射 | T016 |
+| `test/functional/status-page.spec.js` | 使用独立本地 Fastify 进程与真实 Chromium 覆盖 `IQA-002`—`IQA-004` | T017 |
+| `src/status-adapter.js` | 实现 `failure`、`fail-once` 及实例内同步计数 | T018 |
+| `src/app.js` | 实现非法输入拒绝、状态不可用及内部错误的固定 problem contract 与固定类别事件 | T019 |
+| `public/index.html` | 添加默认隐藏的失败结果和“重新尝试”操作 | T020 |
+| `public/app.js` | 实现失败呈现、用户重试、单活跃请求、取消及过期 attempt 忽略 | T021 |
+| `public/styles.css` | 添加最小失败提示和重试操作样式 | T022 |
+| `.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/tasks-implementation.md` | 仅将已有 `T015`—`T022` checkbox 更新为完成 | T015—T022 |
+| `.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/reports/implementation.md` | 在不可变既有前缀后追加本 Session 证据 | Coding 阶段契约 |
+
+### 需求与场景覆盖
+
+| Intent / Specification Scenario | 实现路径 | 测试路径 | 结果 |
+|---|---|---|---|
+| `FR-004` / `AC-002` / `IQA-002` | `src/status-adapter.js`、`src/app.js`、`public/index.html`、`public/app.js` | `test/unit/status-adapter.test.js`、`test/unit/app.test.js`、`test/functional/status-page.spec.js` | 通过；失败模式显示明确失败提示和可用重试操作，不显示“ok” |
+| `FR-003`—`FR-005` / `AC-003` / `IQA-003` | `src/status-adapter.js`、`public/app.js` | `test/functional/status-page.spec.js` | 通过；干净 `fail-once` 进程首次失败，一次用户重试后当前结果替换为“ok” |
+| `FR-004`、`FR-005` / `AC-004` / `IQA-004` | `src/status-adapter.js`、`public/app.js` | `test/functional/status-page.spec.js` | 通过；连续失败后仍保留可用重试操作，每次点击只产生一次请求 |
+| GET `/api/status` failure/invalid/internal contract | `src/app.js` | `test/unit/app.test.js` | 通过；固定 503/400 schema、`application/problem+json`、`no-store`、单次 adapter 求值及无 stack/配置泄露均有断言 |
+
+### 执行命令与结果
+
+| 命令 | 环境 | 结果 | 证据 |
+|---|---|---|---|
+| 实现前 `npm run test:unit` | Node.js 22.23.4，本地 Coding sandbox | 按预期失败，退出码 1 | 13/19 通过，新增 6 项 adapter/contract 断言因缺少失败模式及固定映射而失败 |
+| 实现前 `npm run test:functional` | Node.js 22.23.4、真实本地 Fastify/Chromium | 按预期失败，退出码 1 | `IQA-001` 通过；新增 `IQA-002`—`IQA-004` 因缺少失败行为而失败 |
+| `rm -rf node_modules; npm ci` | Node.js 24.22.2、npm 11.19.1，本地 Coding sandbox | 通过，退出码 0 | 从 lockfile 干净安装 166 个 package，audit 为 0 个漏洞 |
+| `npx playwright install --with-deps chromium` | 本地 Coding sandbox | 通过，退出码 0 | Chromium 与系统依赖安装入口成功执行 |
+| `npm run lint` | Node.js 24.22.2 | 通过，退出码 0 | `eslint .` 无 error/warning；仓库未声明独立 formatter |
+| `npm run build` | Node.js 24.22.2 | 通过，退出码 0 | `dist/` 确定性构建入口成功 |
+| `npm run test:unit` | Node.js 24.22.2 | 通过，退出码 0 | 19/19 unit/component/contract tests 通过 |
+| `npx playwright test --list` | Node.js 24.22.2、Playwright | 通过，退出码 0 | 发现 `IQA-001`—`IQA-004` 共 4 项场景 |
+| `npm run test:functional` | Node.js 24.22.2、真实本地 Fastify/Chromium | 通过，退出码 0 | 4/4 integration/functional/end-to-end 场景通过 |
+| `node --check src/app.js && node --check src/server.js && node --check src/status-adapter.js && node --check public/app.js && node --check scripts/build.mjs` | Node.js 24.22.2 | 通过，退出码 0 | 5 个生产/构建 JavaScript 入口语法检查均通过 |
+| `npm audit --audit-level=moderate` | Node.js 24.22.2、npm 11.19.1 | 通过，退出码 0 | `found 0 vulnerabilities` |
+
+浏览器测试同时承担本设计批准的本地同源 integration、functional 与 end-to-end 验证；本产品没有获批准的外部 integration。
+
+### Runtime 与下游门禁就绪制品
+
+- `success`、`failure`、`fail-once` 三种服务端模式均已实现，四个 IQA 的本地真实浏览器自动化入口均可发现并执行。
+- API 的成功、失败、非法输入和内部错误 contract 已可由平台 CI 在 clean runner 重复验证。
+- `Dockerfile`、active Feature 的 `runtime/deployment.json`、Candidate identity endpoint 与 developer functional script 属于下一 Phase 5，本批次未创建且未声称就绪。
+
+### 延后平台证据
+
+- Candidate SHA、registry image/digest、远程部署 target、Independent QA、UAT、发布审批、Review 与 Merge 只能由后续平台阶段产生。
+- 当前没有部署 URL、外部身份、远程测试结果或其他平台证据；本 Session 未制造凭据或以本地结果替代 Independent QA。
+
+### 限制、剩余风险与阻塞项
+
+- Phase 5 `T023`—`T026` 仍未完成：OCI container、deployment contract、clean runner 最终门禁和 container smoke 尚待下一批。
+- `fail-once` 是批准的单实例验证模式；下游执行 `IQA-003` 时仍需从干净单实例 Candidate 启动，当前本地测试已按该边界执行。
+- ESLint 9.39.5 安装时报告已停止维护警告，但 lockfile 安装及 `npm audit --audit-level=moderate` 成功且为 0 个漏洞；依赖升级不在本批次批准范围。
+- 当前批次无阻塞项。
+
+### 实施结论
+
+完成：`coding-attempt-01-batch-03-operation-012` 已按测试先行顺序完成 Phase 4 `T015`—`T022` 共 8 项任务；Node.js 24 环境下静态分析、build、19 项 unit/component/contract test、4 项本地真实 Chromium integration/functional/end-to-end 场景、测试发现、语法检查及 dependency audit 全部通过。完整 Delivery Coding 尚未完成；下一批从 Phase 5 `T023` 继续。

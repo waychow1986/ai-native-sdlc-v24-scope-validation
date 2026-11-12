@@ -30,3 +30,22 @@ h1 {
   color: #176b3a;
   font-weight: 600;
 }
+
+#failure-message {
+  color: #9c2f24;
+  font-weight: 600;
+}
+
+#retry-status {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #526078;
+  border-radius: 0.25rem;
+  color: #172033;
+  background: #fff;
+  cursor: pointer;
+}
+
+#retry-status:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
