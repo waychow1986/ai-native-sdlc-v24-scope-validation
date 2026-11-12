@@ -1,15 +1,7 @@
 {
   "sourceArtifacts": {
-    "reports/convergence.md": "f51d1fa0d7dd26392af60939666b311339161b7b8a35d0246ba451ee4eadc592"
+    "reports/convergence.md": "d77cd3f87e06ebdb41e7b9c549a94b7cbd7d73d5b0df4ffa9db3c03d628e0809"
   },
-  "passed": false,
-  "blockers": [
-    {
-      "category": "partial",
-      "artifact": "design.md",
-      "path": "src/app.js",
-      "description": "\u7F3A\u5C11\u5DF2\u6279\u51C6\u7684 request_completed \u7ED3\u6784\u5316\u4E8B\u4EF6\u53CA\u5BF9\u5E94\u53EF\u6267\u884C\u9A8C\u8BC1\u3002",
-      "route": "coding-repair"
-    }
-  ]
+  "passed": true,
+  "blockers": []
 }
