@@ -18,7 +18,11 @@ try {
 
 if (configuration) {
   const adapter = createStatusAdapter({ mode: configuration.statusMode });
-  const app = buildApp({ adapter });
+  const deliveryId = process.env.AIDELIVERY_DELIVERY_ID;
+  const candidateSha = process.env.AIDELIVERY_CANDIDATE_SHA;
+  const candidateIdentity =
+    deliveryId && candidateSha ? { deliveryId, candidateSha } : null;
+  const app = buildApp({ adapter, candidateIdentity });
   let stopping = false;
 
   const stop = async (signal) => {

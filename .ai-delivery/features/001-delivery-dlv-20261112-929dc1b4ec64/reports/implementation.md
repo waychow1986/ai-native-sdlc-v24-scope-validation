@@ -210,3 +210,74 @@
 ### 实施结论
 
 完成：`coding-attempt-01-batch-03-operation-012` 已按测试先行顺序完成 Phase 4 `T015`—`T022` 共 8 项任务；Node.js 24 环境下静态分析、build、19 项 unit/component/contract test、4 项本地真实 Chromium integration/functional/end-to-end 场景、测试发现、语法检查及 dependency audit 全部通过。完整 Delivery Coding 尚未完成；下一批从 Phase 5 `T023` 继续。
+
+## Coding Session coding-attempt-01-batch-04-operation-013
+
+### 实施范围
+
+本 Session 完成依赖就绪的 Phase 5 `T023`—`T026`，共 4 个任务：创建多阶段非 root OCI image 与精确构建上下文，声明 provider-neutral deployment contract，补齐平台要求的 Candidate identity endpoint 和部署后 developer functional test 入口，执行 Node.js 24 clean dependency 全量本地验证，并以只读文件系统启动本地 container 完成 smoke。没有访问云资源、远程部署环境或下游 QA target。
+
+### 变更文件
+
+| 路径 | 变更 | 来源任务 |
+|---|---|---|
+| `Dockerfile` | 多阶段 lockfile 构建；final stage 仅安装 production dependency、复制 `dist` 运行文件并以 `node` 用户启动 | T023 |
+| `.dockerignore` | 排除 Git、AI Delivery、测试、开发依赖、本地 build 与测试输出 | T023 |
+| `.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/runtime/deployment.json` | 声明 port、health、Candidate identity、幂等 setup、三类 validation 及部署后 functional script | T024 |
+| `.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/runtime/developer-functional-run.sh` | 校验平台输入、不可变 Candidate identity、首页固定标题及成功状态，并写入规定 JSON 结果 | T024 |
+| `src/app.js` | 添加匿名 `/candidate-identity` endpoint；仅返回注入的 Delivery ID 与 Candidate SHA，不生成 fallback identity | T024、Coding runtime contract |
+| `src/server.js` | 从平台环境变量读取 Candidate identity 并注入 HTTP factory | T024、Coding runtime contract |
+| `test/unit/app.test.js` | 先行添加 Candidate identity contract test，并验证缺少实现时得到 404 红灯 | T024、Coding runtime contract |
+| `.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/tasks-implementation.md` | 仅将已有 `T023`—`T026` checkbox 更新为完成 | T023—T026 |
+| `.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/reports/implementation.md` | 在不可变既有前缀后追加本 Session 证据 | Coding 阶段契约 |
+
+### 需求与场景覆盖
+
+| Intent / Specification Scenario | 实现路径 | 测试路径 | 结果 |
+|---|---|---|---|
+| TD-007、安全与隐私、部署拓扑 | `Dockerfile`、`.dockerignore` | 本地 `docker build`、只读 container 启动及 user 检查 | 通过；image 构建成功，container 以 `node` 用户和只读 root filesystem 启动 |
+| technical baseline、验证环境责任矩阵 | `runtime/deployment.json` | JSON 结构断言及完整声明命令顺序执行 | 通过；仅声明 `staticAnalysis`、`build`、`developerTests` 三个必选类别 |
+| `IQA-001`—`IQA-004` / `AC-001`—`AC-004` | 既有应用实现 | `test/functional/status-page.spec.js` | 通过；真实本地 Fastify 与 Chromium 的 4/4 场景全部通过 |
+| Candidate identity / `IQA-001` 部署后入口 | `src/app.js`、`src/server.js`、`runtime/developer-functional-run.sh` | `test/unit/app.test.js`；对本地 container 执行 functional script | 通过；identity 与平台提供值精确匹配，结果文件记录 `IQA-001` 通过且无外部服务 |
+
+### 执行命令与结果
+
+| 命令 | 环境 | 结果 | 证据 |
+|---|---|---|---|
+| 实现前 `npm run test:unit` | Node.js 24.22.3，本地 Coding sandbox | 按预期失败，退出码 1 | 19/20 通过；新增 Candidate identity test 因 endpoint 尚不存在得到 404 |
+| `npm ci` | Node.js 24.22.3、npm 11.19.1，本地 Coding sandbox | 通过，退出码 0 | 从 lockfile 干净安装 166 个 package；audit 为 0 个漏洞 |
+| `npx playwright install --with-deps chromium` | 本地 Coding sandbox | 通过，退出码 0 | Chromium 1254、headless shell、FFmpeg 与所需系统依赖安装成功 |
+| `npm run lint` | Node.js 24.22.3 | 通过，退出码 0 | `eslint .` 无 error/warning；仓库未声明独立 formatter |
+| `npm run build` | Node.js 24.22.3 | 通过，退出码 0 | `dist/` 确定性构建成功 |
+| `npm run test:unit` | Node.js 24.22.3 | 通过，退出码 0 | 20/20 unit/component/contract tests 通过 |
+| `npx playwright test --list` | Node.js 24.22.3、Playwright | 通过，退出码 0 | 发现 `IQA-001`—`IQA-004` 共 4 项场景 |
+| `npm run test:functional` | Node.js 24.22.3、真实本地 Fastify/Chromium | 通过，退出码 0 | 4/4 integration/functional/end-to-end 场景通过 |
+| `node --check ...` 与 `bash -n runtime/developer-functional-run.sh` | Node.js 24.22.3、Bash | 通过，退出码 0 | 5 个 JavaScript 入口及 functional script 语法检查通过 |
+| `npm audit --audit-level=moderate` | Node.js 24.22.3、npm 11.19.1 | 通过，退出码 0 | `found 0 vulnerabilities` |
+| `docker build --tag ai-native-sdlc-v24-scope-validation:local .` | 本地 Docker | 通过，退出码 0 | builder 执行 `npm ci`/build；final stage 安装 70 个 production package且 audit 为 0 |
+| 只读 non-root container smoke 与 developer functional script | 本地 Docker、`127.0.0.1:3300` | 通过，退出码 0 | `container_user=node health=ok homepage=ok functional=passed` |
+
+### Runtime 与下游门禁就绪制品
+
+- Production `Dockerfile`、`.dockerignore` 与 active Feature 的 `runtime/deployment.json` 已就绪；container 监听 `3000`，readiness path 为 `/healthz`。
+- 匿名 `/candidate-identity` 从 `AIDELIVERY_DELIVERY_ID` 和 `AIDELIVERY_CANDIDATE_SHA` 返回精确 identity；缺少平台注入时不虚构 fallback。
+- deployment contract 的 setup 与三类 validation 已按声明顺序在 Node.js 24 clean dependency 状态成功执行。
+- `runtime/developer-functional-run.sh` 可执行且已对本地 container 验证输入校验、Candidate identity、首页固定标题和 `IQA-001` 成功结果；本产品没有外部 integration，`externalServices` 为空。
+- `failure` 与 `fail-once` 模式及 `IQA-002`—`IQA-004` 的浏览器自动化入口保持可发现、可编译并在本地通过。
+
+### 延后平台证据
+
+- Candidate commit SHA、registry image digest、远程部署 target 与 identity 注入后的远程结果只能由平台 CI 和部署阶段产生。
+- Independent QA 必须对绑定同一 SHA/image 的远程 target 独立执行 `IQA-001`—`IQA-004`；本 Session 的本地 functional/container 结果不替代该证据。
+- UAT、发布审批、Review 与 Merge 仍由后续独立阶段产生；本 Session 未部署、审批或合并。
+
+### 限制、剩余风险与阻塞项
+
+- 本地 container functional script 使用明确的本地测试 identity，仅证明入口可执行，不声称任何真实 Candidate SHA、远程 URL 或平台 identity 已产生。
+- `fail-once` 仍要求下游以干净单实例 Candidate 建立 `IQA-003` 前置条件。
+- ESLint 9.39.5 安装时报告已停止维护警告，但锁定依赖安装成功且 `npm audit --audit-level=moderate` 为 0 个漏洞；未在本 Session 擅自升级依赖。
+- 当前无 Coding 阻塞项。
+
+### 实施结论
+
+完成：`coding-attempt-01-batch-04-operation-013` 已完成 Phase 5 `T023`—`T026`。Node.js 24 clean setup、静态分析、build、20 项 unit/component/contract test、4 项真实 Chromium functional 场景、语法检查、dependency audit、非 root 只读 container smoke 及部署后 functional script 本地入口均通过。远程 Candidate、Independent QA 与审批证据按治理要求延后至对应平台阶段。

@@ -168,6 +168,33 @@ test("GET /healthz reports process health without calling the adapter", async ()
   );
 });
 
+test("GET /candidate-identity returns only the injected immutable identity", async () => {
+  const app = buildApp({
+    adapter: { getStatus: () => ({ kind: "success" }) },
+    candidateIdentity: {
+      deliveryId: "DLV-TEST",
+      candidateSha: "0123456789abcdef",
+    },
+  });
+  try {
+    await app.ready();
+    const response = await app.inject({
+      method: "GET",
+      url: "/candidate-identity",
+    });
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.headers["cache-control"], "no-store");
+    assert.deepEqual(response.json(), {
+      deliveryId: "DLV-TEST",
+      candidateSha: "0123456789abcdef",
+    });
+    assertSecurityHeaders(response);
+  } finally {
+    await app.close();
+  }
+});
+
 test("unknown paths return a safe 404", async () => {
   await withApp({ getStatus: () => ({ kind: "success" }) }, async (app) => {
     const response = await app.inject({ method: "GET", url: "/missing" });
