@@ -62,10 +62,10 @@
 
 ## Phase 5：Polish
 
-- [ ] T023 [P] 创建多阶段 OCI 构建：builder 使用 lockfile 构建，final stage 仅含 production dependency 与 `dist`、以非 root `node` 用户运行且不包含测试/报告；同时排除 Git、AI Delivery、测试、开发依赖及本地输出（`Dockerfile`、`.dockerignore`；来源：TD-007、安全与隐私、部署拓扑决策；依赖：T005、T009—T014、T018—T022）
-- [ ] T024 [P] 声明 provider-neutral deployment contract：幂等 `developerSetupCommands`，唯一分类的 `staticAnalysis`、`build`、`developerTests` 命令，container port `3000`、`/healthz` 及默认 `STATUS_MODE=success`；不得声明不适用的 `integrationTests` 或远程结果（`.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/runtime/deployment.json`；来源：technical baseline、配置与运维、验证环境责任矩阵；依赖：T001—T003、T006—T022）
-- [ ] T025 按 deployment contract 从干净依赖状态依次执行 `npm ci`、Chromium 安装、`npm run lint`、`npm run build`、`npm run test:unit`、`npm run test:functional`，首次失败即停止；完成证据为保留每条命令的真实 stdout/stderr 和退出码，且四个 IQA 自动化场景全部通过（`package.json`、`package-lock.json`、`.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/runtime/deployment.json`；来源：Quickstart 1—5、验证环境责任矩阵；依赖：T023、T024）
-- [ ] T026 构建本地 container 并以只读应用文件、非 root 用户和默认成功模式启动，验证 `/healthz` 与首页可达；完成证据为本地 build/启动/探针退出码，且明确该 smoke 不替代 T025 的 functional 证据或下游 Independent QA（`Dockerfile`、`.dockerignore`、`.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/runtime/deployment.json`；来源：Quickstart 6、Container smoke 责任、TD-007；依赖：T025）
+- [x] T023 [P] 创建多阶段 OCI 构建：builder 使用 lockfile 构建，final stage 仅含 production dependency 与 `dist`、以非 root `node` 用户运行且不包含测试/报告；同时排除 Git、AI Delivery、测试、开发依赖及本地输出（`Dockerfile`、`.dockerignore`；来源：TD-007、安全与隐私、部署拓扑决策；依赖：T005、T009—T014、T018—T022）
+- [x] T024 [P] 声明 provider-neutral deployment contract：幂等 `developerSetupCommands`，唯一分类的 `staticAnalysis`、`build`、`developerTests` 命令，container port `3000`、`/healthz` 及默认 `STATUS_MODE=success`；不得声明不适用的 `integrationTests` 或远程结果（`.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/runtime/deployment.json`；来源：technical baseline、配置与运维、验证环境责任矩阵；依赖：T001—T003、T006—T022）
+- [x] T025 按 deployment contract 从干净依赖状态依次执行 `npm ci`、Chromium 安装、`npm run lint`、`npm run build`、`npm run test:unit`、`npm run test:functional`，首次失败即停止；完成证据为保留每条命令的真实 stdout/stderr 和退出码，且四个 IQA 自动化场景全部通过（`package.json`、`package-lock.json`、`.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/runtime/deployment.json`；来源：Quickstart 1—5、验证环境责任矩阵；依赖：T023、T024）
+- [x] T026 构建本地 container 并以只读应用文件、非 root 用户和默认成功模式启动，验证 `/healthz` 与首页可达；完成证据为本地 build/启动/探针退出码，且明确该 smoke 不替代 T025 的 functional 证据或下游 Independent QA（`Dockerfile`、`.dockerignore`、`.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/runtime/deployment.json`；来源：Quickstart 6、Container smoke 责任、TD-007；依赖：T025）
 
 ## 完成证据
 
