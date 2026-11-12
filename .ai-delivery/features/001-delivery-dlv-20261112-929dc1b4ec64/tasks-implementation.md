@@ -18,10 +18,10 @@
 
 ## Phase 1：Setup
 
-- [ ] T001 建立 Node.js 24 LTS、Fastify 5、ES module、Node test runner、Playwright 与 `lint`、`build`、`test:unit`、`test:functional` 脚本的 npm manifest，并用 lockfile 固定全部依赖；完成证据为 `npm ci` 可从空依赖目录恢复一致依赖（`package.json`、`package-lock.json`；来源：TD-001、TD-006、Contract test 义务、clean runner 决策；依赖：无）
-- [ ] T002 [P] 配置 ESLint 覆盖 `src/`、`public/`、`scripts/`、`test/` 及配置文件，且 `npm run lint` 对违规返回非零码（`eslint.config.js`；来源：TD-006、配置与运维决策；依赖：T001）
-- [ ] T003 [P] 配置 Playwright Chromium 使用本地 Fastify 服务、隔离的 `STATUS_MODE` 和可重复启动环境，不依赖远程 target（`playwright.config.js`；来源：TD-004、TD-006、验证环境责任矩阵；依赖：T001）
-- [ ] T004 [P] 声明仅忽略 `node_modules/`、`dist/`、Playwright 输出和本地日志的仓库生成物规则（`.gitignore`；来源：批准路径清单、Component 边界；依赖：T001）
+- [x] T001 建立 Node.js 24 LTS、Fastify 5、ES module、Node test runner、Playwright 与 `lint`、`build`、`test:unit`、`test:functional` 脚本的 npm manifest，并用 lockfile 固定全部依赖；完成证据为 `npm ci` 可从空依赖目录恢复一致依赖（`package.json`、`package-lock.json`；来源：TD-001、TD-006、Contract test 义务、clean runner 决策；依赖：无）
+- [x] T002 [P] 配置 ESLint 覆盖 `src/`、`public/`、`scripts/`、`test/` 及配置文件，且 `npm run lint` 对违规返回非零码（`eslint.config.js`；来源：TD-006、配置与运维决策；依赖：T001）
+- [x] T003 [P] 配置 Playwright Chromium 使用本地 Fastify 服务、隔离的 `STATUS_MODE` 和可重复启动环境，不依赖远程 target（`playwright.config.js`；来源：TD-004、TD-006、验证环境责任矩阵；依赖：T001）
+- [x] T004 [P] 声明仅忽略 `node_modules/`、`dist/`、Playwright 输出和本地日志的仓库生成物规则（`.gitignore`；来源：批准路径清单、Component 边界；依赖：T001）
 
 ## Phase 2：Foundational
 
