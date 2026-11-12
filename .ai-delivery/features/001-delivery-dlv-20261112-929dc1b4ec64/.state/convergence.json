@@ -1,0 +1,15 @@
+{
+  "sourceArtifacts": {
+    "reports/convergence.md": "f51d1fa0d7dd26392af60939666b311339161b7b8a35d0246ba451ee4eadc592"
+  },
+  "passed": false,
+  "blockers": [
+    {
+      "category": "partial",
+      "artifact": "design.md",
+      "path": "src/app.js",
+      "description": "缺少已批准的 request_completed 结构化事件及对应可执行验证。",
+      "route": "coding-repair"
+    }
+  ]
+}
