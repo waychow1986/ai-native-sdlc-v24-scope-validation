@@ -281,3 +281,62 @@
 ### 实施结论
 
 完成：`coding-attempt-01-batch-04-operation-013` 已完成 Phase 5 `T023`—`T026`。Node.js 24 clean setup、静态分析、build、20 项 unit/component/contract test、4 项真实 Chromium functional 场景、语法检查、dependency audit、非 root 只读 container smoke 及部署后 functional script 本地入口均通过。远程 Candidate、Independent QA 与审批证据按治理要求延后至对应平台阶段。
+
+## Coding Session coding-attempt-01-batch-05-operation-017
+
+### 实施范围
+
+本 Session 以 `coding-repair` 模式定向修复 Convergence 阻塞项 `CVG-001`：在现有 `T014` 责任内先添加可执行测试，再为每个完成的 HTTP 请求输出恰好一个 `request_completed` 结构化事件。修复仅涉及批准的运维日志契约，不改变用户可见产品行为、HTTP 响应契约、runtime 声明或既有任务 checkbox。
+
+### 变更文件
+
+| 路径 | 变更 | 来源任务 |
+|---|---|---|
+| `test/unit/app.test.js` | 添加成功、业务失败和未知路径的请求完成事件测试，验证事件数量、批准字段、route template、method、status、duration、内部 request id 及敏感请求信息不泄露 | T014；CVG-001 |
+| `src/app.js` | 添加请求开始计时和完成 hook；向 stdout 输出 `request_completed`，未知路径使用 `null` route template，且不记录 URL、query、IP、user-agent、header 或 payload | T014；TD-008；CVG-001 |
+| `.ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/reports/implementation.md` | 在不可变既有前缀后追加本 Session 的真实修复证据 | Coding 阶段契约 |
+
+### 需求与场景覆盖
+
+| Intent / Specification Scenario | 实现路径 | 测试路径 | 结果 |
+|---|---|---|---|
+| `design.md` 配置、可观测性与运维 / `T014` / `CVG-001` | `src/app.js` | `test/unit/app.test.js` | 通过；正常 200、状态不可用 503 和未知路径 404 各产生恰好一个 `request_completed`，仅含 event、route template、HTTP method、status code、duration 和内部 request id |
+| `FR-001`—`FR-005` / `IQA-001`—`IQA-004` 回归 | 既有应用实现保持不变 | `test/functional/status-page.spec.js` | 通过；4/4 本地真实 Fastify + Chromium 场景继续通过 |
+| 安全与日志约束 | `src/app.js` | `test/unit/app.test.js` | 通过；包含 query 和 user-agent 的未知请求未将 URL path、query、header 或其测试值写入事件 |
+
+### 执行命令与结果
+
+| 命令 | 环境 | 结果 | 证据 |
+|---|---|---|---|
+| 首次 `npm run test:unit` | Node.js 22.23.4，本地 Coding sandbox，尚未执行 setup | 失败，退出码 1 | `node_modules/` 缺失，无法载入 `@fastify/static`；该结果不作为测试先行红灯证据 |
+| `npm ci && npm run test:unit`（实现前） | Node.js 22.23.4，本地 Coding sandbox | 按预期失败，退出码 1 | 既有 20 项通过；新增事件测试因捕获到 0 个事件而失败，证明缺陷可执行复现 |
+| `npm run test:unit`（实现后聚焦验证） | Node.js 22.23.4，本地 Coding sandbox | 通过，退出码 0 | 21/21 unit/component/contract tests 通过 |
+| `npm ci` | Node.js 24.22.2、npm 11.19.1，本地 Coding sandbox | 通过，退出码 0 | 从 lockfile 干净安装 166 个 package；audit 为 0 个漏洞 |
+| `npx playwright install --with-deps chromium` | Node.js 24.22.2，本地 Coding sandbox | 通过，退出码 0 | Chromium 与所需系统依赖安装成功 |
+| `npm run lint` | Node.js 24.22.2，本地 Coding sandbox | 通过，退出码 0 | `eslint .` 无 error/warning |
+| `npm run build` | Node.js 24.22.2，本地 Coding sandbox | 通过，退出码 0 | `dist/` 确定性构建成功 |
+| `npm run test:unit` | Node.js 24.22.2，本地 Coding sandbox | 通过，退出码 0 | 21/21 unit/component/contract tests 通过 |
+| `npm run test:functional` | Node.js 24.22.2、真实本地 Fastify/Chromium | 通过，退出码 0 | `IQA-001`—`IQA-004` 共 4/4 场景通过 |
+| `git diff --check` 及相对 immutable base `447a7b6c1509da3c3860a0e7b912fe0ac9199ddb` 的路径检查 | 本地 Coding sandbox | 通过，退出码 0 | 最终变更仅为 `src/app.js`、`test/unit/app.test.js` 和本报告，均在批准 manifest 内；无 whitespace error |
+
+### Runtime 与下游门禁就绪制品
+
+- 既有 `Dockerfile`、`runtime/deployment.json`、`runtime/developer-functional-run.sh`、`/healthz` 和 `/candidate-identity` 未修改。
+- `runtime/deployment.json` 声明的 setup、`staticAnalysis`、`build`、`developerTests` 已按顺序在 Node.js 24.22.2 环境全部通过。
+- `request_completed` 现由 Fastify 请求生命周期统一输出，覆盖正常、业务失败、错误和未知路径；测试证明本次 Convergence 所需的正常、失败和未知路径证据。
+
+### 延后平台证据
+
+- 平台 CI 仍需对本 Session 最终 commit 重复声明的 setup、validation、container build 和 smoke。
+- Candidate SHA、registry image digest、远程部署 target、远程 Candidate identity、Independent QA、UAT、发布审批、Review 与 Merge 只能由后续平台阶段产生；本 Session 未部署、审批或合并。
+
+### 限制、剩余风险与阻塞项
+
+- 未知路径没有已匹配 route template，事件以 `routeTemplate: null` 表示，避免记录原始 path 或 query；已由测试固定并验证无请求信息泄露。
+- duration 为进程单调时钟计算的非负毫秒数；Specification 未批准延迟阈值，本 Session 不创建性能门禁。
+- 锁定的 ESLint 版本继续输出停止维护警告；`npm ci` audit 为 0 个漏洞，依赖升级不属于本次修复范围。
+- 远程 Candidate 与 Independent QA 证据按阶段治理延后；当前无 Coding 阻塞项。
+
+### 实施结论
+
+完成：`coding-attempt-01-batch-05-operation-017` 已按测试先行顺序修复 `CVG-001`。`request_completed` 现对每个请求输出一次且仅包含批准字段；Node.js 24 环境下静态分析、build、21 项 unit/component/contract test 和 4 项真实 Chromium functional 场景全部通过。既有任务文本与 checkbox 未改动，用户可见行为和 runtime contract 保持不变。
