@@ -1,0 +1,15 @@
+{
+  "sourceArtifacts": {
+    "reports/convergence.md": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "passed": false,
+  "blockers": [
+    {
+      "category": "partial",
+      "artifact": "design.md",
+      "path": "src/app.js",
+      "description": "已批准的 request_completed 结构化事件及其可执行验证缺失，运维运行时不变量仍不完整。",
+      "route": "coding-repair"
+    }
+  ]
+}
