@@ -1,0 +1,24 @@
+{
+  "containerPort": 3000,
+  "healthPath": "/healthz",
+  "candidateIdentityPath": "/candidate-identity",
+  "migrationCommand": [],
+  "developerSetupCommands": [
+    "npm ci",
+    "npx playwright install --with-deps chromium"
+  ],
+  "developerValidationCommands": {
+    "staticAnalysis": [
+      "npm run lint"
+    ],
+    "build": [
+      "npm run build"
+    ],
+    "developerTests": [
+      "npm run test:unit",
+      "npm run test:functional"
+    ]
+  },
+  "developerFunctionalTestScript": ".ai-delivery/features/001-delivery-dlv-20261112-929dc1b4ec64/runtime/developer-functional-run.sh",
+  "requiresPrivateNetwork": false
+}

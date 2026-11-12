@@ -21,6 +21,16 @@ const statusResponseSchema = {
   },
 };
 
+const candidateIdentityResponseSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["deliveryId", "candidateSha"],
+  properties: {
+    deliveryId: { type: "string", minLength: 1 },
+    candidateSha: { type: "string", minLength: 1 },
+  },
+};
+
 const problemResponseSchema = {
   type: "object",
   additionalProperties: false,
@@ -56,7 +66,7 @@ function methodNotAllowed(_request, reply) {
   });
 }
 
-export function buildApp({ adapter }) {
+export function buildApp({ adapter, candidateIdentity = null }) {
   if (!adapter || typeof adapter.getStatus !== "function") {
     throw new TypeError("A status adapter is required");
   }
@@ -152,7 +162,30 @@ export function buildApp({ adapter }) {
     async () => ({ status: "ok" }),
   );
 
-  for (const url of ["/", "/api/status", "/healthz"]) {
+  app.get(
+    "/candidate-identity",
+    {
+      schema: {
+        querystring: emptyInputSchema,
+        response: { 200: candidateIdentityResponseSchema },
+      },
+    },
+    async (_request, reply) => {
+      if (
+        !candidateIdentity ||
+        typeof candidateIdentity.deliveryId !== "string" ||
+        candidateIdentity.deliveryId.length === 0 ||
+        typeof candidateIdentity.candidateSha !== "string" ||
+        candidateIdentity.candidateSha.length === 0
+      ) {
+        return reply.code(503).send({ error: "Candidate identity unavailable" });
+      }
+
+      return reply.header("Cache-Control", "no-store").send(candidateIdentity);
+    },
+  );
+
+  for (const url of ["/", "/api/status", "/healthz", "/candidate-identity"]) {
     app.route({
       method: ["POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       url,
