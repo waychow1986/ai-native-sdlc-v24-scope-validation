@@ -25,24 +25,24 @@
 
 ## Phase 2：Foundational
 
-- [ ] T005 实现清理并重建 `dist/` 的构建入口，复制 `src/`、`public/`、manifest 与 lockfile，并在缺少必需文件时失败；完成证据为输出目录可由干净源码确定性生成（`scripts/build.mjs`；来源：TD-007、Component 边界、Build 与制品组装决策；依赖：T001）
+- [x] T005 实现清理并重建 `dist/` 的构建入口，复制 `src/`、`public/`、manifest 与 lockfile，并在缺少必需文件时失败；完成证据为输出目录可由干净源码确定性生成（`scripts/build.mjs`；来源：TD-007、Component 边界、Build 与制品组装决策；依赖：T001）
 
 ## Phase 3：US1 - 查看当前状态（P1）
 
 ### 测试
 
-- [ ] T006 [P] [US1] 先编写聚焦 unit tests，覆盖默认成功 adapter、成功结果严格枚举、独立实例初始状态以及非法 `PORT`、`HOST`、`STATUS_MODE` 配置拒绝且不泄露配置值；完成证据为测试在缺少实现时按预期失败（`test/unit/status-adapter.test.js`；来源：US-001、FR-002、FR-003、TD-004、配置模型；依赖：T002、T005）
-- [ ] T007 [P] [US1] 先编写 Fastify contract/component tests，精确验证 `GET /`、成功 `GET /api/status`、`GET /healthz`、JSON schema、content type、`Cache-Control: no-store`、安全响应头及 404/405 契约；完成证据为断言在缺少 route 实现时按预期失败（`test/unit/app.test.js`；来源：US-001、FR-001—FR-003、AC-001、GET `/`、GET `/api/status`、GET `/healthz`、HTTP 通用契约；依赖：T002、T005）
-- [ ] T008 [P] [US1] 先编写使用真实本地 Fastify 进程与 Chromium 的 integration、functional 和 end-to-end 场景，覆盖 `IQA-001`：打开首页后准确显示“流程状态”和“ok”，不直接修改 DOM；完成证据为场景在生产页面缺失时按预期失败（`test/functional/status-page.spec.js`；来源：US-001、IQA-001、AC-001、SC-001、SC-002、TD-006；依赖：T003、T005）
+- [x] T006 [P] [US1] 先编写聚焦 unit tests，覆盖默认成功 adapter、成功结果严格枚举、独立实例初始状态以及非法 `PORT`、`HOST`、`STATUS_MODE` 配置拒绝且不泄露配置值；完成证据为测试在缺少实现时按预期失败（`test/unit/status-adapter.test.js`；来源：US-001、FR-002、FR-003、TD-004、配置模型；依赖：T002、T005）
+- [x] T007 [P] [US1] 先编写 Fastify contract/component tests，精确验证 `GET /`、成功 `GET /api/status`、`GET /healthz`、JSON schema、content type、`Cache-Control: no-store`、安全响应头及 404/405 契约；完成证据为断言在缺少 route 实现时按预期失败（`test/unit/app.test.js`；来源：US-001、FR-001—FR-003、AC-001、GET `/`、GET `/api/status`、GET `/healthz`、HTTP 通用契约；依赖：T002、T005）
+- [x] T008 [P] [US1] 先编写使用真实本地 Fastify 进程与 Chromium 的 integration、functional 和 end-to-end 场景，覆盖 `IQA-001`：打开首页后准确显示“流程状态”和“ok”，不直接修改 DOM；完成证据为场景在生产页面缺失时按预期失败（`test/functional/status-page.spec.js`；来源：US-001、IQA-001、AC-001、SC-001、SC-002、TD-006；依赖：T003、T005）
 
 ### 实现
 
-- [ ] T009 [P] [US1] 实现无 Fastify 依赖的 `StatusAdapter` factory、严格配置解析和默认 `success` 行为，使 T006 的 US1 unit tests 通过（`src/status-adapter.js`；来源：FR-002、FR-003、TD-004、领域与配置模型；依赖：T006）
-- [ ] T010 [US1] 实现 Fastify factory、固定静态资源 root、`GET /`、成功 `GET /api/status`、独立 `/healthz`、请求 schema、no-store 与通用安全/404/405 contract，使 T007 的 US1 contract tests 通过（`src/app.js`；来源：FR-001—FR-003、TD-001—TD-003、Interface 与契约、安全约束；依赖：T007、T009）
-- [ ] T011 [P] [US1] 创建语义化首页骨架，包含准确 `h1`“流程状态”和可更新结果区域，且不使用 inline script/style（`public/index.html`；来源：FR-001、GET `/` Contract、HTTP 通用契约；依赖：T008）
-- [ ] T012 [US1] 实现 `DOMContentLoaded` 后恰好一次同源 `GET /api/status`、严格成功响应判定和“ok”呈现，不发送 query、body、cookie 或凭据（`public/app.js`；来源：FR-002、FR-003、TD-002、TD-005、页面加载数据流；依赖：T008、T011）
-- [ ] T013 [P] [US1] 实现批准范围内的最小首页布局与 loading/success 状态样式，不引入复杂视觉设计或第三方资源（`public/styles.css`；来源：INT-006、TD-002、GET `/` Contract；依赖：T008）
-- [ ] T014 [US1] 实现唯一进程入口：启动时解析配置、创建 adapter、监听 `HOST`/`PORT`、处理 `SIGTERM`/`SIGINT`，并仅输出批准的无敏感内容结构化事件（`src/server.js`；来源：TD-004、TD-008、生命周期、配置与可观测性决策；依赖：T009、T010）
+- [x] T009 [P] [US1] 实现无 Fastify 依赖的 `StatusAdapter` factory、严格配置解析和默认 `success` 行为，使 T006 的 US1 unit tests 通过（`src/status-adapter.js`；来源：FR-002、FR-003、TD-004、领域与配置模型；依赖：T006）
+- [x] T010 [US1] 实现 Fastify factory、固定静态资源 root、`GET /`、成功 `GET /api/status`、独立 `/healthz`、请求 schema、no-store 与通用安全/404/405 contract，使 T007 的 US1 contract tests 通过（`src/app.js`；来源：FR-001—FR-003、TD-001—TD-003、Interface 与契约、安全约束；依赖：T007、T009）
+- [x] T011 [P] [US1] 创建语义化首页骨架，包含准确 `h1`“流程状态”和可更新结果区域，且不使用 inline script/style（`public/index.html`；来源：FR-001、GET `/` Contract、HTTP 通用契约；依赖：T008）
+- [x] T012 [US1] 实现 `DOMContentLoaded` 后恰好一次同源 `GET /api/status`、严格成功响应判定和“ok”呈现，不发送 query、body、cookie 或凭据（`public/app.js`；来源：FR-002、FR-003、TD-002、TD-005、页面加载数据流；依赖：T008、T011）
+- [x] T013 [P] [US1] 实现批准范围内的最小首页布局与 loading/success 状态样式，不引入复杂视觉设计或第三方资源（`public/styles.css`；来源：INT-006、TD-002、GET `/` Contract；依赖：T008）
+- [x] T014 [US1] 实现唯一进程入口：启动时解析配置、创建 adapter、监听 `HOST`/`PORT`、处理 `SIGTERM`/`SIGINT`，并仅输出批准的无敏感内容结构化事件（`src/server.js`；来源：TD-004、TD-008、生命周期、配置与可观测性决策；依赖：T009、T010）
 
 ## Phase 4：US2 - 从状态取得失败中恢复（P1）
 

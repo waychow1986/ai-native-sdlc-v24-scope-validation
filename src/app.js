@@ -85,7 +85,7 @@ export function buildApp({ adapter }) {
 
   for (const url of ["/", "/api/status", "/healthz"]) {
     app.route({
-      method: ["POST", "PUT", "PATCH", "DELETE"],
+      method: ["POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       url,
       handler: methodNotAllowed,
     });

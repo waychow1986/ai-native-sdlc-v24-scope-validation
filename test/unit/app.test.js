@@ -93,10 +93,12 @@ test("unknown paths return a safe 404", async () => {
 
 test("unsupported methods return 405 with the allowed method", async () => {
   await withApp({ getStatus: () => ({ kind: "success" }) }, async (app) => {
-    const response = await app.inject({ method: "POST", url: "/api/status" });
+    for (const method of ["POST", "OPTIONS"]) {
+      const response = await app.inject({ method, url: "/api/status" });
 
-    assert.equal(response.statusCode, 405);
-    assert.equal(response.headers.allow, "GET");
-    assertSecurityHeaders(response);
+      assert.equal(response.statusCode, 405);
+      assert.equal(response.headers.allow, "GET");
+      assertSecurityHeaders(response);
+    }
   });
 });
